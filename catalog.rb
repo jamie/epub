@@ -1,6 +1,8 @@
 require 'rubygems'
-require 'sinatra'
+
+require 'digest'
 require 'rexml/document'
+require 'sinatra'
 require 'time'
 require 'zippy'
 
@@ -12,40 +14,18 @@ class Book
     @file = Zippy.open(file)
   end
   
-  def author
-    node(rootfile, 'metadata/dc:creator').text
-  end
-  
-  def identifier
-    node(rootfile, 'metadata/dc:identifier').text
-  end
-  
-  def language
-    node(rootfile, 'metadata/dc:language').text
-  end
-  
-  def rootfile
-    node('META-INF/container.xml', 'rootfiles/rootfile').attributes['full-path']
-  end
-  
-  def subject
-    node(rootfile, 'metadata/dc:subject').text
-  end
-  
-  def title
-    node(rootfile, 'metadata/dc:title').text
-  end
-  
-  def to_s
-    "<em>#{title}</em> by #{author}"
-  end
+  def author()      meta 'creator'    end
+  def identifier()  meta 'identifier' end
+  def language()    meta 'language'   end
+  def subject()     meta 'subject'    end # TODO: multiple
+  def title()       meta 'title'      end
   
   def to_xml
     <<-XML
       <entry>
         <title>#{title}</title>
         <content type="xhtml">
-          <div xmlns="http://www.w3.org/1999/xhtml">Published: -500 Subject: #{subject} Language: #{language}</div>
+          <div xmlns="http://www.w3.org/1999/xhtml">Subject: #{subject} Language: #{language}</div>
         </content>
         <id>#{identifier}</id>
         <author>
@@ -62,12 +42,13 @@ class Book
   end
   
   def updated
-    begin
-      date = node(rootfile, 'metadata/dc:date[@opf:event="epub-publication"]').text
-      Time.parse(date).strftime('%Y-%m-%dT%H:%M:%S+00:00')
+    t = begin
+      date = meta('date[@opf:event="epub-publication"]')
+      Time.parse(date)
     rescue
-      Time.now.strftime('%Y-%m-%dT%H:%M:%S+00:00')
+      Time.now
     end
+    t.strftime('%Y-%m-%dT%H:%M:%S+00:00')
   end
   
   def uri_path
@@ -75,56 +56,73 @@ class Book
   end
 
 private
-  def node(path, xpath)
-    xml(path).elements[xpath]
+  def meta(name)
+    xml(rootfile).elements["metadata/dc:#{name}"].text
   end
 
+  def rootfile
+    xml('META-INF/container.xml').
+      elements['rootfiles/rootfile'].
+      attributes['full-path']
+  end
+  
   def xml(path)
     REXML::Document.new(@file[path]).root
   end
 end
 
 class Catalog
-  def initialize(dir)
+  def initialize(dir='.')
     @dir = dir
   end
   
-  def title
-    @dir.sub(%r{^.+/},'')
+  def entries
+    if File.expand_path(@dir).starts_with File.expand_path('.')
+      Dir["public/epub/#{@dir}/*"].map do |entry|
+        if File.directory?(entry)
+          dir = entry.sub(%r{^.+/},'')
+          Catalog.new(dir)
+        else
+          Book.new(entry)
+        end
+      end
+    else
+      []
+    end
   end
   
-  def to_s
-    title
+  def identifier
+    content = entries.map{|e|e.to_xml}.join
+    digest = Digest::SHA1.hexdigest(content)
+    "urn:sha1:#{digest}"
+  end
+
+  def title
+    @dir.sub(%r{^.+/},'')
   end
   
   def to_xml
     <<-XML
       <entry>
         <title>#{title}</title>
-        <id>urn:uuid:1925c615-cab8-4ebb-aaaa-81da314efc61</id>
-        <updated>2008-08-18T17:40:59-07:00</updated>
+        <id>#{identifier}</id>
+        <updated>#{updated}</updated>
         <link type="application/atom+xml" href="/catalog/#{uri_path}"/>
       </entry>
     XML
   end
   
+  def updated
+    t = if entries.empty?
+      Time.mktime(2009,1,1)
+    else
+      Time.parse entries.map{|e|e.updated}.sort.last
+    end
+    t.strftime('%Y-%m-%dT%H:%M:%S+00:00')
+  end
+  
   def uri_path
     @dir.sub(%r{public/epub/*},'')
-  end
-end
-
-def entries(dir="")
-  full_dir = "public/epub/#{dir}"
-  if File.expand_path(full_dir).starts_with File.expand_path('.')
-    Dir["#{full_dir}/*"].map do |entry|
-      if File.directory?(entry)
-        Catalog.new(entry)
-      else
-        Book.new(entry)
-      end
-    end
-  else
-    []
   end
 end
 
@@ -133,17 +131,21 @@ get '/' do
 end
 
 get '/catalog' do
-  @catalog = Catalog.new('')
-  @entries = entries
+  @catalog = Catalog.new
   content_type 'application/atom+xml', :charset => 'utf-8'
   erb :catalog
 end
 
 get '/catalog/:dir' do |dir|
   @catalog = Catalog.new(dir)
-  @entries = entries(dir)
   content_type 'application/atom+xml', :charset => 'utf-8'
   erb :catalog
+end
+
+get '/search' do
+  # TODO
+  # search is params[:q]
+  pass
 end
 
 __END__
@@ -171,10 +173,10 @@ __END__
     <email>anonymous@example.com</email>
   </author>
   <subtitle>epub_catalog <%= VERSION %></subtitle>
-  <id>urn:uuid:60a76c80-d399-12d9-b91C-0883939e0af6</id>
+  <id><%= @catalog.identifier %></id>
   <link rel="self" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %>/catalog/<%= @catalog.uri_path %>"/>
-  <!--<link rel="search" title="Search Catalog" type="application/atom+xml" href="http://www.billybobsbooks.com/search.php?q={searchTerms}"/> -->
-  <% @entries.each do |entry| %>
+  <!--<link rel="search" title="Search Catalog" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %>/search?q={searchTerms}"/> -->
+  <% @catalog.entries.each do |entry| %>
     <%= entry.to_xml %>
   <% end %>
 </feed>
