@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'rubygems'
 
 require 'digest'
@@ -11,7 +13,7 @@ require 'lib/catalog'
 
 VERSION = '0.0.1'
 
-$root = File.expand_path(ARGV[1])
+$root = File.expand_path(ARGV.last)
 
 get '/' do
   @catalog = Catalog.new($root)
