@@ -44,6 +44,17 @@ get '/catalog/:dir' do |dir|
   erb :catalog
 end
 
+get %r{/browse/(.*\.epub)} do |file|
+  @book = Book.new("#{$root}/#{file}")
+  erb :browse
+end
+
+get '/browse/:dir' do |dir|
+  @back = true
+  @catalog = Catalog.new("#{$root}/#{dir}")
+  erb :index
+end
+
 get '/search' do
   # TODO
   # search is params[:q]
@@ -69,12 +80,25 @@ __END__
       or iPod touch to browse and download the books we have on hand,
       or browse them below.</p>
     <ul>
+      <% if @back %>
+        <li><a href="..">..</a></li>
+      <% end%>
       <% @catalog.entries.each do |entry| %>
         <li>
           <a href="/browse/<%= relative entry.path %>"><%= entry.title %></a>
         </li>
       <% end %>
     </ul>
+  </body>
+</html>
+
+@@ browse
+<html>
+  <head>
+    <title><%= @book.title %> - My Books</title>
+  </head>
+  <body>
+    <h1><%= @book.title %></h1>
   </body>
 </html>
 
