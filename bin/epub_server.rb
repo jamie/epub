@@ -6,128 +6,38 @@ require 'sinatra'
 require 'time'
 require 'zippy'
 
+require 'lib/book'
+require 'lib/catalog'
+
 VERSION = '0.0.1'
 
-ROOT = "public/epub/"
-
-class Book
-  def initialize(file)
-    @filename = file
-    @file = Zippy.open(file)
-  end
-  
-  def author()      meta 'creator'    end
-  def identifier()  meta 'identifier' end
-  def language()    meta 'language'   end
-  def subject()     meta 'subject'    end # TODO: multiple
-  def title()       meta 'title'      end
-  
-  def path
-    @filename
-  end
-    
-  def title_image
-    begin
-      rel_url = xml(rootfile).
-        elements["//item[@media-type='image/jpeg']"].
-        attributes['href']
-      url = rootfile.gsub(%r{[^/]*.opf}, rel_url)
-      @file[url]
-    rescue
-      nil
-    end
-  end
-  
-  def updated
-    t = begin
-      date = meta('date[@opf:event="epub-publication"]')
-      Time.parse(date)
-    rescue
-      Time.now
-    end
-    t.strftime('%Y-%m-%dT%H:%M:%S+00:00')
-  end
-
-private
-  def meta(name)
-    xml(rootfile).elements["metadata/dc:#{name}"].text
-  end
-
-  def rootfile
-    xml('META-INF/container.xml').
-      elements['rootfiles/rootfile'].
-      attributes['full-path']
-  end
-  
-  def xml(path)
-    REXML::Document.new(@file[path]).root
-  end
-end
-
-class Catalog
-  def initialize(dir='.')
-    @dir = dir
-  end
-  
-  def entries
-    if File.expand_path(@dir).starts_with File.expand_path('.')
-      Dir["#{@dir}/*"].map do |entry|
-        if File.directory?(entry)
-          dir = entry.sub(%r{^.+/},'')
-          Catalog.new(dir)
-        else
-          Book.new(entry)
-        end
-      end
-    else
-      []
-    end
-  end
-  
-  def path
-    @dir
-  end
-  
-  def identifier
-    content = entries.map{|e|e.identifier}.join
-    digest = Digest::SHA1.hexdigest(content)
-    "urn:sha1:#{digest}"
-  end
-
-  def title
-    @dir.sub(%r{^.+/},'')
-  end
-  
-  def updated
-    t = if entries.empty?
-      Time.mktime(2009,1,1)
-    else
-      Time.parse entries.map{|e|e.updated}.sort.last
-    end
-    t.strftime('%Y-%m-%dT%H:%M:%S+00:00')
-  end
-end
+$root = File.expand_path(ARGV[1])
 
 get '/' do
-  @catalog = Catalog.new(ROOT)
+  @catalog = Catalog.new($root)
   erb :index
 end
 
-get '/epub/:name.jpg' do |name|
-  book = Book.new("#{ROOT}/#{name}.epub")
-  next unless image = book.title_image
+get %r{/epub/(.*)\.jpg} do |name|
+  book = Book.new("#{$root}/#{name}.epub")
+  pass unless image = book.title_image
   content_type 'image/jpeg'
   image
 end
 
+get %r{/epub/(.*\.epub)} do |file|
+  content_type 'application/epub+zip'
+  send_file "#{$root}/#{file}"
+end
+
 get '/catalog' do
-  @catalog = Catalog.new(ROOT)
+  @catalog = Catalog.new($root)
   content_type 'application/atom+xml', :charset => 'utf-8'
   erb :catalog
 end
 
 get '/catalog/:dir' do |dir|
-  @catalog = Catalog.new(ROOT + dir)
+  @catalog = Catalog.new("#{$root}/#{dir}")
   content_type 'application/atom+xml', :charset => 'utf-8'
   erb :catalog
 end
@@ -140,14 +50,7 @@ end
 
 helpers do
   def relative(uri)
-    uri
-  end
-  def uri_path
-    @dir.sub(%r{public/epub/*},'')
-  end
-  
-  def uri_path
-    @filename.sub(%r(public/epub/*), '/epub/').gsub('/./', '/')
+    uri.sub($root+'/', '')
   end
 end
 
@@ -165,7 +68,9 @@ __END__
       or browse them below.</p>
     <ul>
       <% @catalog.entries.each do |entry| %>
-        <li><a href="/browse/<%= entry.name %>"><%= entry.title %></a></li>
+        <li>
+          <a href="/browse/<%= relative entry.path %>"><%= entry.title %></a>
+        </li>
       <% end %>
     </ul>
   </body>
@@ -210,7 +115,7 @@ __END__
     <name><%= entry.author %></name>
   </author>
   <updated><%= entry.updated %></updated>
-  <link type="application/epub+zip" href="<%= relative entry.path %>"/>
+  <link type="application/epub+zip" href="/epub/<%= relative entry.path %>"/>
   <% if entry.title_image %>
     <% image_uri = relative(entry.path).gsub('.epub', '.jpg') %>
     <link rel="x-stanza-cover-image" type="image/jpeg" href="<%= image_uri %>"/>
