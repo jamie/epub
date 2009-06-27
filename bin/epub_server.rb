@@ -20,6 +20,17 @@ get '/' do
   erb :index
 end
 
+get '/s/*' do |file|
+  filename = File.expand_path(File.join(File.dirname(__FILE__), '..', 'static', file))
+  case File.extname(filename)
+  when '.css'
+    content_type 'text/css'
+  when '.js'
+    content_type 'text/javascript'
+  end
+  send_file filename
+end
+
 get %r{/epub/(.*)\.jpg} do |name|
   book = Book.new("#{$root}/#{name}.epub")
   pass unless image = book.title_image
@@ -69,38 +80,41 @@ end
 
 __END__
 
-@@ index
+@@ layout
 <html>
   <head>
-    <title>My Books</title>
+    <title><%= [@title, "My Books"].compact.join(' - ') %></title>
+    <link rel="stylesheet" href="/s/css/screen.css" type="text/css" media="screen, projection">
+    <link rel="stylesheet" href="/s/css/print.css" type="text/css" media="print">
+    <!--[if IE]><link rel="stylesheet" href="/s/css/ie.css" type="text/css" media="screen, projection"><![endif]-->
+    <link rel="stylesheet" href="/s/css/style.css" type="text/css" media="screen, projection">
   </head>
   <body>
-    <h1>My Books</h1>
-    <p>Load up our <a href="/catalog">catalog</a> in Stanza on your iPhone
-      or iPod touch to browse and download the books we have on hand,
-      or browse them below.</p>
-    <ul>
-      <% if @back %>
-        <li><a href="..">..</a></li>
-      <% end%>
-      <% @catalog.entries.each do |entry| %>
-        <li>
-          <a href="/browse/<%= relative entry.path %>"><%= entry.title %></a>
-        </li>
-      <% end %>
-    </ul>
+    <div class="container">
+      <%= yield %>
+    </div>
   </body>
 </html>
 
+@@ index
+<h1>My Books</h1>
+<p>Load up our <a href="/catalog">catalog</a> in Stanza on your iPhone
+  or iPod touch to browse and download the books we have on hand,
+  or browse them below.</p>
+<ul>
+  <% if @back %>
+    <li><a href="..">..</a></li>
+  <% end%>
+  <% @catalog.entries.each do |entry| %>
+    <li>
+      <a href="/browse/<%= relative entry.path %>"><%= entry.title %></a>
+    </li>
+  <% end %>
+</ul>
+
 @@ browse
-<html>
-  <head>
-    <title><%= @book.title %> - My Books</title>
-  </head>
-  <body>
-    <h1><%= @book.title %></h1>
-  </body>
-</html>
+<% @title = @book.title %>
+<h1><%= @book.title %></h1>
 
 @@ catalog
 <?xml version="1.0" encoding="utf-8"?>
