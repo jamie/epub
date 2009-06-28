@@ -4,22 +4,23 @@ class Catalog
   end
   
   def entries
+    dirs = []
+    files = []
     if File.expand_path(@dir).starts_with File.expand_path('.')
-      Dir["#{@dir}/*"].map do |entry|
+      Dir["#{@dir}*"].each do |entry|
         if File.directory?(entry)
-          dir = entry.sub(%r{^.+/},'')
-          Catalog.new(dir)
+          dir = entry#.sub(%r{^.+/},'')
+          dirs << Catalog.new(dir)
         else
-          Book.new(entry)
+          files << Book.new(entry)
         end
       end
-    else
-      []
     end
+    dirs + files
   end
   
   def path
-    @dir
+    @dir + '/'
   end
   
   def identifier
