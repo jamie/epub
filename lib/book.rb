@@ -1,3 +1,6 @@
+require 'rexml/document'
+require 'zippy'
+
 class Book
   def initialize(file)
     @filename = file

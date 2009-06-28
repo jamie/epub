@@ -1,3 +1,6 @@
+require 'digest'
+require 'time'
+
 class Catalog
   def initialize(dir='.')
     @dir = dir

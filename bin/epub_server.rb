@@ -1,12 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'rubygems'
-
-require 'digest'
-require 'rexml/document'
 require 'sinatra'
-require 'time'
-require 'zippy'
 
 require 'lib/book'
 require 'lib/catalog'
