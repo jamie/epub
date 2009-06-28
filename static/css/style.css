@@ -13,3 +13,18 @@
 #book p:first-letter {
   padding-left: 2em;
 }
+
+/* Custom css for texts from epubbooks.com */
+h3.chapter-title {
+  text-align: center;
+  /* copy of 'fancy' */
+  color: #666; 
+  font-family: "Warnock Pro", "Goudy Old Style","Palatino","Book Antiqua", Georgia, serif; 
+  font-style: italic;
+  font-weight: normal;
+}
+h4.chapter-subtitle {
+  text-align: center;
+  /* copy of 'thin' */
+  font-weight: lighter;
+}
