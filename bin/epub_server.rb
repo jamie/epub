@@ -96,6 +96,7 @@ __END__
     </div>
     <script type="text/javascript">
     $('#toc a').click(function() {
+      $('#book').html("");
       $.get(this.href, function(data) {
         $('#book').html(data);
       });
