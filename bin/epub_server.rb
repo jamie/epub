@@ -49,7 +49,7 @@ get '/catalog' do
   erb :catalog
 end
 
-get '/catalog/:dir' do |dir|
+get '/catalog/*' do |dir|
   @catalog = Catalog.new("#{$root}/#{dir}")
   content_type 'application/atom+xml', :charset => 'utf-8'
   erb :catalog
@@ -60,7 +60,7 @@ get %r{/browse/(.*\.epub)} do |file|
   erb :browse
 end
 
-get '/browse/:dir' do |dir|
+get '/browse/*' do |dir|
   @back = true
   @catalog = Catalog.new("#{$root}/#{dir}")
   erb :index
