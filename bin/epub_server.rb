@@ -88,6 +88,7 @@ __END__
     <link rel="stylesheet" href="/s/css/print.css" type="text/css" media="print">
     <!--[if IE]><link rel="stylesheet" href="/s/css/ie.css" type="text/css" media="screen, projection"><![endif]-->
     <link rel="stylesheet" href="/s/css/style.css" type="text/css" media="screen, projection">
+    <script src="/s/js/jquery-1.3.2.min.js" type="text/javascript"></script>
   </head>
   <body>
     <div class="container">
