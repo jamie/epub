@@ -50,6 +50,11 @@ get '/catalog/*' do |dir|
   erb :catalog
 end
 
+get %r{/browse/(.*\.epub)/(.*)} do |file, path|
+  @book = Book.new("#{$root}/#{file}")
+  @book.section(path)
+end
+
 get %r{/browse/(.*\.epub)} do |file|
   @book = Book.new("#{$root}/#{file}")
   erb :browse
@@ -89,6 +94,14 @@ __END__
     <div class="container">
       <%= yield %>
     </div>
+    <script type="text/javascript">
+    $('#toc a').click(function() {
+      $.get(this.href, function(data) {
+        $('#book').html(data);
+      });
+      return false
+    });
+    </script>
   </body>
 </html>
 
@@ -110,7 +123,21 @@ __END__
 
 @@ browse
 <% @title = @book.title %>
-<h1><%= @book.title %></h1>
+<div id="nav" class="span-8 border">
+  <div class="center">
+    <h1 class="fancy"><%= @book.title %></h1>
+    <h2 class="thin"> by <%= @book.author %></h2>
+  </div>
+  <hr>
+  <ul id="toc">
+  <% @book.table_of_contents.each do |label, path| %>
+    <li><a href="<%= File.basename(@book.path) %>/<%= path %>"><%= label %></a></li>
+  <% end %>
+  </ul>
+</div>
+<div id="book" class="prefix-1 span-14 suffix-1 last">
+  <%= @book.section(@book.table_of_contents[0][1]) %>
+</div>
 
 @@ catalog
 <?xml version="1.0" encoding="utf-8"?>

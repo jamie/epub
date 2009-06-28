@@ -1,0 +1,15 @@
+.container > div {
+  height: 99%;
+  overflow: auto;
+}
+#book {
+  font-size: 140%;
+}
+#book p {
+  margin: 0;
+  line-height: 1.5em;
+  text-align: justify;
+}
+#book p:first-letter {
+  padding-left: 2em;
+}
