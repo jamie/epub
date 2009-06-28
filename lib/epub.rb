@@ -16,6 +16,15 @@ class Epub
     xml(tocfile).elements["//docAuthor/text"].text
   end
   
+  def bad?
+    begin
+      @file["META-INF/container.xml"]
+      false
+    rescue TypeError
+      true
+    end
+  end
+  
   def path
     @filename
   end
