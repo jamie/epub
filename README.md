@@ -4,6 +4,8 @@ I have a bunch of ePub books that I wanted access to from Stanza on my iPod Touc
 
 This project is currently an alpha/proof-of-concept catalog server, as well as an online book reader. I intend in the future to also include online editing of books, since I'm so good at finding typos.
 
+At the moment, it's only been developed with hand-made epubs, as well as those available from [epubBooks.com](http://www.epubbooks.com/).
+
 ## Running the Server
 
 Check out the project, and from the root run `ruby bin/epub_server <epub_dir>`, where the argument to the server is a directory containing epub files, and optionally subdirectories containing the same. You can also provide [Sinatra](http://www.sinatrarb.com/intro.html) command line options to change the port, etc.
