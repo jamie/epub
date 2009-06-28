@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'sinatra'
 
-require 'lib/book'
+require 'lib/epub'
 require 'lib/catalog'
 
 VERSION = '0.0.1'
@@ -27,7 +27,7 @@ get '/s/*' do |file|
 end
 
 get %r{/epub/(.*)\.jpg} do |name|
-  book = Book.new("#{$root}/#{name}.epub")
+  book = Epub.new("#{$root}/#{name}.epub")
   pass unless image = book.title_image
   content_type 'image/jpeg'
   image
@@ -51,12 +51,12 @@ get '/catalog/*' do |dir|
 end
 
 get %r{/browse/(.*\.epub)/(.*)} do |file, path|
-  @book = Book.new("#{$root}/#{file}")
+  @book = Epub.new("#{$root}/#{file}")
   @book.section(path)
 end
 
 get %r{/browse/(.*\.epub)} do |file|
-  @book = Book.new("#{$root}/#{file}")
+  @book = Epub.new("#{$root}/#{file}")
   erb :browse
 end
 
@@ -161,7 +161,7 @@ __END__
 
 @@ _xml
 <%= case entry
-    when Book ;    erb :_book_xml,    :locals => {:entry => entry}
+    when Epub ;    erb :_book_xml,    :locals => {:entry => entry}
     when Catalog ; erb :_catalog_xml, :locals => {:entry => entry}
     end
 %>

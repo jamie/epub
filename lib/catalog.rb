@@ -15,7 +15,7 @@ class Catalog
           dir = entry#.sub(%r{^.+/},'')
           dirs << Catalog.new(dir)
         else
-          files << Book.new(entry)
+          files << Epub.new(entry)
         end
       end
     end

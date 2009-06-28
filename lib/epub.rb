@@ -1,7 +1,7 @@
 require 'rexml/document'
 require 'zippy'
 
-class Book
+class Epub
   def initialize(file)
     @filename = file
     @file = Zippy.open(file)
