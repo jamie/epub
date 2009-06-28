@@ -20,6 +20,6 @@ The catalog is located at [/catalog](http://localhost:4567/catalog) and linked f
 
 ## Known Issues
 
-ePub files are simply renamed zip files, but it seems that some (such as files from [manybooks.net](http://manybooks.net), or ones converted from Stanza's desktop application) are incompatible with ruby's zip library. You'll know it when you see it, the error message is "can't dup NilClass". At the moment, the best fix I have is to simply unzip and re-zip the file with a normal zip utility, and it seems to clear the issue up.
+ePub files are simply renamed zip files, but it seems that some (such as files from [manybooks.net](http://manybooks.net), or ones converted from [Calibre](http://calibre.kovidgoyal.net)) are incompatible with ruby's zip library. You'll know it when you see it, the error message is "can't dup NilClass". At the moment, the best fix I have is to simply unzip and re-zip the file with a normal zip utility, and it seems to clear the issue up.
 
 If you find a non-DRM'd epub book that the server blows up on in a different way, add it to the [issues list](http://github.com/jamie/epub/issues).
