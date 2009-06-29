@@ -14,7 +14,7 @@ class Catalog
         if File.directory?(entry)
           dir = entry#.sub(%r{^.+/},'')
           dirs << Catalog.new(dir)
-        else
+        elsif entry =~ /\.epub$/
           epub = Epub.new(entry)
           files << epub unless epub.bad?
         end
