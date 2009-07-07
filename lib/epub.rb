@@ -25,12 +25,28 @@ class Epub
     end
   end
   
+  def book_info_html
+    html = "<dl>"
+    xml(rootfile).elements["//metadata"].each do |meta|
+      next if meta.kind_of? REXML::Text
+      attrs = meta.attributes.map{|k,v|"#{k}=#{v}"}.join(', ')
+      html << "<dt>#{meta.name} #{attrs}</dt><dd>#{meta.text}</dd>"
+    end
+    html << "</dl>"
+    html
+  end
+  
   def path
     @filename
   end
   
   def section(path)
-    REXML::Document.new(@file[path]).elements["/html/body/div"].to_s
+    case path
+    when 'Book Information'
+      book_info_html
+    else
+      REXML::Document.new(@file[path]).elements["/html/body/div"].to_s
+    end
   end
   
   def table_of_contents

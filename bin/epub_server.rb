@@ -11,7 +11,7 @@ VERSION = '0.0.1'
 $root = File.expand_path(ARGV.last)
 
 get '/' do
-  @catalog = Catalog.new($root)
+  @catalog = Catalog.new($root+'/')
   erb :index
 end
 
@@ -61,6 +61,8 @@ get %r{/browse/(.*\.epub)} do |file|
 end
 
 get '/browse/*' do |dir|
+  return redirect('/') if dir == ""
+  
   @back = true
   @catalog = Catalog.new("#{$root}/#{dir}")
   erb :index
@@ -137,7 +139,7 @@ __END__
   </ul>
 </div>
 <div id="book" class="prefix-1 span-14 suffix-1 last">
-  <%= @book.section(@book.table_of_contents[0][1]) %>
+  <%= @book.section('Book Information') %>
 </div>
 
 @@ catalog
