@@ -13,7 +13,15 @@ class Epub
   def subject()     rootfile_meta "subject"    end # TODO: multiple
     
   def author
-    xml(tocfile).elements["//docAuthor/text"].text
+    if node = xml(tocfile).elements["//docAuthor/text"]
+      node.text
+    elsif node = xml(rootfile).elements["//dc:creator[@opf:role~=aut]"] 
+      node.text
+    elsif node = xml(rootfile).elements["//dc:creator"] 
+      node.text
+    else
+      'Unknown Author'
+    end
   end
   
   def bad?
@@ -26,14 +34,20 @@ class Epub
   end
   
   def book_info_html
-    html = "<dl>"
+    html = "<table>"
     xml(rootfile).elements["//metadata"].each do |meta|
       next if meta.kind_of? REXML::Text
       attrs = meta.attributes.map{|k,v|"#{k}=#{v}"}.join(', ')
-      html << "<dt>#{meta.name} #{attrs}</dt><dd>#{meta.text}</dd>"
+      html << "<tr><th>#{meta.name} #{attrs}</th><td>#{meta.text}</td></tr>"
     end
-    html << "</dl>"
+    html << "</table>"
     html
+  end
+  
+  def manifest(id)
+    xml(rootfile).elements.each("//manifest/item"){|item|
+      return item.attributes['href'] if item.attributes['id'] == id
+    }
   end
   
   def path
@@ -45,23 +59,37 @@ class Epub
     when 'Book Information'
       book_info_html
     else
-      REXML::Document.new(@file[path]).elements["/html/body/div"].to_s
+      doc = REXML::Document.new(@file[path])
+      content = doc.elements["/html/body/div"].to_s
+      if content.empty?
+        content = doc.elements["/html/body"].to_s.gsub(/<(\/?)body>/, '<\1div>')
+      end
+      content
     end
   end
   
   def table_of_contents
     links = []
-    xml(tocfile).elements.each("navMap/navPoint"){|nav|
+    xml(tocfile).elements.each("//navMap/navPoint"){|nav|
       links << [
         nav.elements["navLabel/text"].text,
         absolute(nav.elements["content"].attributes["src"])
       ]
     }
+    if links.empty?
+      xml(rootfile).elements.each("//spine/itemref"){|item|
+        links << [
+          item.attributes["idref"],
+          absolute(manifest(item.attributes["idref"]))
+        ]
+      }
+    end
     links
   end
     
   def title
-    xml(tocfile).elements["//docTitle/text"].text
+    xml(rootfile).elements["//dc:title"] .text
+    #xml(tocfile).elements["//docTitle/text"].text
   end
   
   def title_image
@@ -94,7 +122,7 @@ private
   end
   
   def rootfile_meta(name)
-    xml(rootfile).elements["metadata/dc:#{name}"].text
+    xml(rootfile).elements["metadata/dc:#{name}"].text rescue ''
   end
 
   def tocfile
