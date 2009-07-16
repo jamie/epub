@@ -10,7 +10,7 @@ class Catalog
     dirs = []
     files = []
     if File.expand_path(@dir).starts_with File.expand_path('.')
-      Dir["#{@dir}*"].each do |entry|
+      Dir["#{@dir}/*"].each do |entry|
         if File.directory?(entry)
           dir = entry#.sub(%r{^.+/},'')
           dirs << Catalog.new(dir)
