@@ -41,13 +41,13 @@ end
 get '/catalog' do
   @catalog = Catalog.new($root)
   content_type 'application/atom+xml', :charset => 'utf-8'
-  erb :catalog
+  erb :catalog, :layout => false
 end
 
 get '/catalog/*' do |dir|
   @catalog = Catalog.new("#{$root}/#{dir}")
   content_type 'application/atom+xml', :charset => 'utf-8'
-  erb :catalog
+  erb :catalog, :layout => false
 end
 
 get %r{/browse/(.*\.epub)/(.*)} do |file, path|
@@ -76,7 +76,7 @@ end
 
 helpers do
   def relative(uri)
-    uri.sub($root+'/', '')
+    uri.sub($root+'/', '').chomp('/')
   end
 end
 
@@ -157,14 +157,14 @@ __END__
   <link rel="self" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %>/catalog/<%= relative @catalog.path %>"/>
   <!--<link rel="search" title="Search Catalog" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %>/search?q={searchTerms}"/> -->
   <% @catalog.entries.each do |entry| %>
-    <%= erb :_xml, :locals => {:entry => entry} %>
+    <%= erb :_xml, :locals => {:entry => entry}, :layout => false %>
   <% end %>
 </feed>
 
 @@ _xml
 <%= case entry
-    when Epub ;    erb :_book_xml,    :locals => {:entry => entry}
-    when Catalog ; erb :_catalog_xml, :locals => {:entry => entry}
+    when Epub ;    erb :_book_xml,    :locals => {:entry => entry}, :layout => false
+    when Catalog ; erb :_catalog_xml, :locals => {:entry => entry}, :layout => false
     end
 %>
 
@@ -181,7 +181,7 @@ __END__
     <name><%= entry.author %></name>
   </author>
   <updated><%= entry.updated %></updated>
-  <link type="application/epub+zip" href="/epub/<%= relative entry.path %>"/>
+  <link type="application/epub+zip" href="/epub/<%= relative entry.path.gsub(' ','+') %>"/>
   <% if entry.title_image %>
     <% image_uri = relative(entry.path).gsub('.epub', '.jpg') %>
     <link rel="x-stanza-cover-image" type="image/jpeg" href="<%= image_uri %>"/>
@@ -194,5 +194,5 @@ __END__
   <title><%= entry.title %></title>
   <id><%= entry.identifier %></id>
   <updated><%= entry.updated %></updated>
-  <link type="application/atom+xml" href="/catalog/<%= relative entry.path %>"/>
+  <link type="application/atom+xml" href="/catalog/<%= relative entry.path.gsub(' ','+') %>"/>
 </entry>
