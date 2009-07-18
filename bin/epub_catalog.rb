@@ -10,10 +10,6 @@ VERSION = '0.0.1'
 
 $root = File.expand_path(ARGV.last)
 
-get '/' do
-  erb :index
-end
-
 get %r{/epub/(.*)\.jpg} do |name|
   book = Epub.new("#{$root}/#{name}.epub")
   pass unless image = book.title_image
@@ -32,13 +28,13 @@ get '/search' do
   pass
 end
 
-get '/catalog' do
+get '/' do
   @catalog = Catalog.new($root)
   content_type 'text/plain', :charset => 'utf-8'
   erb :catalog
 end
 
-get '/catalog/*' do |dir|
+get '/*' do |dir|
   @catalog = Catalog.new("#{$root}/#{dir}")
   content_type 'text/plain', :charset => 'utf-8'
   erb :catalog
@@ -52,17 +48,6 @@ end
 
 __END__
 
-@@ index
-<html>
-  <head>
-    <title>ePub Catalog</title>
-  </head>
-  <body>
-    <h1>ePub Catalog</h1>
-    <p>Load up our <a href="/catalog">catalog</a> in Stanza on your iPhone
-      or iPod touch to browse and download the books.</p>
-  </body>
-</html>
 @@ catalog
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -85,6 +70,7 @@ __END__
   erb template, :locals => {:entry => entry}
 end.join
 %></feed>
+
 @@ _book_xml
   <entry>
     <title><%= entry.title %></title>
@@ -105,6 +91,7 @@ end.join
     <link rel="x-stanza-cover-image-thumbnail" type="image/jpeg" href="<%= image_uri %>"/>
 <% end
 %>  </entry>
+
 @@ _catalog_xml
   <entry>
     <title><%= entry.title %></title>
@@ -112,4 +99,3 @@ end.join
     <updated><%= entry.updated %></updated>
     <link type="application/atom+xml" href="/catalog/<%= relative entry.path.gsub(' ','+') %>"/>
   </entry>
-@@ end
