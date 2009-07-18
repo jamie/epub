@@ -27,8 +27,9 @@ class Epub
   def bad?
     begin
       @file["META-INF/container.xml"]
+      tocfile
       false
-    rescue TypeError
+    rescue TypeError, NoMethodError
       true
     end
   end

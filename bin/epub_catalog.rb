@@ -26,22 +26,22 @@ get %r{/epub/(.*\.epub)} do |file|
   send_file "#{$root}/#{file}"
 end
 
+get '/search' do
+  # TODO
+  # search is params[:q]
+  pass
+end
+
 get '/catalog' do
   @catalog = Catalog.new($root)
-  content_type 'application/atom+xml', :charset => 'utf-8'
+  content_type 'text/plain', :charset => 'utf-8'
   erb :catalog
 end
 
 get '/catalog/*' do |dir|
   @catalog = Catalog.new("#{$root}/#{dir}")
-  content_type 'application/atom+xml', :charset => 'utf-8'
+  content_type 'text/plain', :charset => 'utf-8'
   erb :catalog
-end
-
-get '/search' do
-  # TODO
-  # search is params[:q]
-  pass
 end
 
 helpers do
@@ -55,15 +55,14 @@ __END__
 @@ index
 <html>
   <head>
-    <title>EBook Catalog</title>
+    <title>ePub Catalog</title>
   </head>
   <body>
-    <h1>My Books</h1>
+    <h1>ePub Catalog</h1>
     <p>Load up our <a href="/catalog">catalog</a> in Stanza on your iPhone
       or iPod touch to browse and download the books.</p>
   </body>
 </html>
-
 @@ catalog
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
@@ -78,43 +77,39 @@ __END__
   <id><%= @catalog.identifier %></id>
   <link rel="self" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %>/catalog/<%= relative @catalog.path %>"/>
   <!--<link rel="search" title="Search Catalog" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %>/search?q={searchTerms}"/> -->
-  <% @catalog.entries.each do |entry| %>
-    <%= erb :_xml, :locals => {:entry => entry} %>
-  <% end %>
-</feed>
-
-@@ _xml
-<%= case entry
-    when Epub ;    erb :_book_xml,    :locals => {:entry => entry}
-    when Catalog ; erb :_catalog_xml, :locals => {:entry => entry}
-    end
-%>
-
+<%= @catalog.entries.map do |entry|
+  template = case entry
+    when Epub ;    :_book_xml
+    when Catalog ; :_catalog_xml
+  end
+  erb template, :locals => {:entry => entry}
+end.join
+%></feed>
 @@ _book_xml
-<entry>
-  <title><%= entry.title %></title>
-  <content type="xhtml">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      Subject: <%= entry.subject %> Language: <%= entry.language %>
-    </div>
-  </content>
-  <id><%= entry.identifier %></id>
-  <author>
-    <name><%= entry.author %></name>
-  </author>
-  <updated><%= entry.updated %></updated>
-  <link type="application/epub+zip" href="/epub/<%= relative entry.path.gsub(' ','+') %>"/>
-  <% if entry.title_image %>
-    <% image_uri = relative(entry.path).gsub('.epub', '.jpg') %>
-    <link rel="x-stanza-cover-image" type="image/jpeg" href="<%= image_uri %>"/>
+  <entry>
+    <title><%= entry.title %></title>
+    <content type="xhtml">
+      <div xmlns="http://www.w3.org/1999/xhtml">
+        Subject: <%= entry.subject %> Language: <%= entry.language %>
+      </div>
+    </content>
+    <id><%= entry.identifier %></id>
+    <author>
+      <name><%= entry.author %></name>
+    </author>
+    <updated><%= entry.updated %></updated>
+    <link type="application/epub+zip" href="/epub/<%= relative entry.path.gsub(' ','+') %>"/>
+<% if entry.title_image
+     image_uri = relative(entry.path).gsub('.epub', '.jpg')
+%>    <link rel="x-stanza-cover-image" type="image/jpeg" href="<%= image_uri %>"/>
     <link rel="x-stanza-cover-image-thumbnail" type="image/jpeg" href="<%= image_uri %>"/>
-  <% end %>
-</entry>
-
+<% end
+%>  </entry>
 @@ _catalog_xml
-<entry>
-  <title><%= entry.title %></title>
-  <id><%= entry.identifier %></id>
-  <updated><%= entry.updated %></updated>
-  <link type="application/atom+xml" href="/catalog/<%= relative entry.path.gsub(' ','+') %>"/>
-</entry>
+  <entry>
+    <title><%= entry.title %></title>
+    <id><%= entry.identifier %></id>
+    <updated><%= entry.updated %></updated>
+    <link type="application/atom+xml" href="/catalog/<%= relative entry.path.gsub(' ','+') %>"/>
+  </entry>
+@@ end
