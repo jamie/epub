@@ -10,7 +10,7 @@ require './lib/catalog'
 
 VERSION = '0.0.1'
 
-$root = File.expand_path(ARGV.last)
+$root = ENV['LOCAL_CATALOG_ROOT']
 
 puts 'Loading Library'
 ALL_BOOKS = Dir[File.expand_path(File.join("#{$root}", '**', '*.epub'))].map do |file|
