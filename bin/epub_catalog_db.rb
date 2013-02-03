@@ -5,8 +5,8 @@ Bundler.load
 require 'rubygems'
 require 'sinatra'
 
-require 'lib/epub'
-require 'lib/catalog'
+require './lib/epub'
+require './lib/catalog'
 
 VERSION = '0.0.1'
 
