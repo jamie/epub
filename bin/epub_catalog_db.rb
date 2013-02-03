@@ -38,8 +38,9 @@ ALL_BOOKS.each do |book|
   BY_AUTHOR[book[:author]] ||= []
   BY_AUTHOR[book[:author]] << book
   
-  BY_TITLE[book[:title].split(//).first.upcase] ||= []
-  BY_TITLE[book[:title].split(//).first.upcase] << book  
+  title_initial = book[:title].split(//).first.upcase
+  BY_TITLE[title_initial] ||= []
+  BY_TITLE[title_initial] << book
 end
 
 get %r{^/epub/(.*)\.jpg$} do |name|
@@ -68,7 +69,7 @@ get %r{^/(author|title)$} do |set|
   @catalog = Kernel.const_get("BY_#{set.upcase}").map{|title, books|
     {
       :title => title,
-      :uri => "/#{set}/#{title.gsub(' ','+')}",
+      :uri => "/#{set}/#{URI.escape title}",
       :desc => "#{books.size} Books"
     }
   }.sort_by{|e|e[:title]}
