@@ -43,7 +43,7 @@ ALL_BOOKS.each do |book|
 end
 
 get %r{^/epub/(.*)\.jpg$} do |name|
-  book = Epub.new("#{$root}/#{name}.epub")
+  book = Epub.new("/#{name}.epub")
   pass unless image = book.title_image
   content_type 'image/jpeg'
   image
