@@ -96,12 +96,12 @@ __END__
   <title>My Books</title>
   <author>
     <name>Anonymous</name>
-    <uri>http://<%= request.env['SERVER_NAME'] %>/</uri>
+    <uri>http://<%= request.env['HTTP_HOST'] %>/</uri>
     <email>anonymous@example.com</email>
   </author>
   <subtitle>epub_catalog <%= VERSION %></subtitle>
-  <link rel="self" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %><%= request.env['REQUEST_PATH'] %>"/>
-  <link rel="search" title="Search Catalog" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %>/search?q={searchTerms}"/>
+  <link rel="self" type="application/atom+xml" href="http://<%= request.env['HTTP_HOST'] %><%= request.env['REQUEST_PATH'] %>"/>
+  <link rel="search" title="Search Catalog" type="application/atom+xml" href="http://<%= request.env['HTTP_HOST'] %>/search?q={searchTerms}"/>
 <% @catalog.each do |entry| %>
   <entry>
     <title><%= entry[:title] %></title>
@@ -119,12 +119,12 @@ __END__
   <title>My Books</title>
   <author>
     <name>Anonymous</name>
-    <uri>http://<%= request.env['SERVER_NAME'] %>/</uri>
+    <uri>http://<%= request.env['HTTP_HOST'] %>/</uri>
     <email>anonymous@example.com</email>
   </author>
   <subtitle>epub_catalog <%= VERSION %></subtitle>
-  <link rel="self" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %><%= request.env['REQUEST_PATH'] %>"/>
-  <link rel="search" title="Search Catalog" type="application/atom+xml" href="http://<%= request.env['SERVER_NAME'] %>/search?q={searchTerms}"/>
+  <link rel="self" type="application/atom+xml" href="http://<%= request.env['HTTP_HOST'] %><%= request.env['REQUEST_PATH'] %>"/>
+  <link rel="search" title="Search Catalog" type="application/atom+xml" href="http://<%= request.env['HTTP_HOST'] %>/search?q={searchTerms}"/>
 <% @books.each do |book| %>
   <entry>
     <id><%= book[:id] %></id>
