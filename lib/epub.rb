@@ -49,6 +49,9 @@ class Epub
     xml(rootfile).elements.each("//manifest/item"){|item|
       return item.attributes['href'] if item.attributes['id'] == id
     }
+    xml(rootfile).elements.each("//manifest/opf:item"){|item|
+      return item.attributes['href'] if item.attributes['id'] == id
+    }
   end
   
   def path
@@ -127,7 +130,9 @@ private
   end
 
   def tocfile
-    absolute xml(rootfile).elements["//item[@id='ncx']"].attributes["href"]
+    doc = xml(rootfile)
+    node = doc.elements["//item[@id='ncx']"] || doc.elements["//opf:item[@id='ncx']"]
+    absolute node.attributes["href"]
   end
   
   def absolute(path)
