@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+require 'bundler'
+Bundler.load
 
 require 'rubygems'
 require 'sinatra'
