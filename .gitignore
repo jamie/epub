@@ -1,2 +1,5 @@
 .bundle
+bin/*
+!bin/*.rb
+ENV
 tmp/
