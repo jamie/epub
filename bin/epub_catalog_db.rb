@@ -31,6 +31,7 @@ ALL_BOOKS = Dir[File.expand_path(File.join("#{$root}", '**', '*.epub'))].map do 
     :summary => nil
   }
 end.compact
+puts "#{ALL_BOOKS.size} loaded"
 
 BY_AUTHOR = {}
 BY_TITLE  = {}
