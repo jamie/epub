@@ -28,8 +28,9 @@ class Epub
     begin
       @file["META-INF/container.xml"]
       tocfile
+      author
       false
-    rescue TypeError, NoMethodError
+    rescue TypeError, NoMethodError, REXML::ParseException
       true
     end
   end
@@ -92,7 +93,7 @@ class Epub
   end
     
   def title
-    xml(rootfile).elements["//dc:title"] .text
+    xml(rootfile).elements["//dc:title"].text rescue ""
     #xml(tocfile).elements["//docTitle/text"].text
   end
   
